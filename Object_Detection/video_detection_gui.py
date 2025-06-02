@@ -283,8 +283,13 @@ class StatusPanel(QFrame):
         layout = QHBoxLayout()
         
         # Performance indicators
-        self.fps_label = QLabel("FPS: 0.0")
-        self.fps_label.setStyleSheet("font-weight: bold; color: #27ae60;")
+        self.video_fps_label = QLabel("Video FPS: 0.0")
+        self.video_fps_label.setStyleSheet("font-weight: bold; color: #e74c3c;")
+        self.video_fps_label.setToolTip("Current video playback FPS")
+        
+        self.detection_fps_label = QLabel("Detection FPS: 0.0")
+        self.detection_fps_label.setStyleSheet("font-weight: bold; color: #27ae60;")
+        self.detection_fps_label.setToolTip("Object detection processing FPS")
         
         self.detection_label = QLabel("Objects: 0")
         self.detection_label.setStyleSheet("font-weight: bold; color: #3498db;")
@@ -296,7 +301,9 @@ class StatusPanel(QFrame):
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         
-        layout.addWidget(self.fps_label)
+        layout.addWidget(self.video_fps_label)
+        layout.addWidget(QLabel("|"))
+        layout.addWidget(self.detection_fps_label)
         layout.addWidget(QLabel("|"))
         layout.addWidget(self.detection_label)
         layout.addWidget(QLabel("|"))
