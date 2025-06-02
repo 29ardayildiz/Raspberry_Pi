@@ -2,9 +2,9 @@ import sys
 import cv2
 import torch
 import time
-from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget, QFileDialog
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QImage, QPixmap
+from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget, QFileDialog
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QImage, QPixmap
 
 class ObjectDetectionApp(QWidget):
     def __init__(self):
@@ -34,7 +34,12 @@ class ObjectDetectionApp(QWidget):
         self.cap = None
 
     def select_video(self):
-        video_path, _ = QFileDialog.getOpenFileName(self, "Video Dosyası Seç", "", "Video Files (*.mp4 *.avi *.mov *.mkv)")
+        video_path, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Video Dosyası Seç", 
+            "", 
+            "Video Files (*.mp4 *.avi *.mov *.mkv)"
+        )
         if video_path:
             self.cap = cv2.VideoCapture(video_path)
             self.timer.start(30)  # ~30 fps
@@ -51,7 +56,13 @@ class ObjectDetectionApp(QWidget):
                 rgb_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
                 h, w, ch = rgb_frame.shape
                 bytes_per_line = ch * w
-                convert_to_Qt_format = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
+                convert_to_Qt_format = QImage(
+                    rgb_frame.data, 
+                    w, 
+                    h, 
+                    bytes_per_line, 
+                    QImage.Format.Format_RGB888
+                )
                 pixmap = QPixmap.fromImage(convert_to_Qt_format)
                 self.label.setPixmap(pixmap)
             else:
@@ -62,4 +73,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = ObjectDetectionApp()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
