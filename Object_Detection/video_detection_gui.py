@@ -335,6 +335,11 @@ class ObjectDetectionApp(QMainWindow):
         self.paused = False
         self.current_video_path = None
         
+        # Video FPS tracking
+        self.video_frame_count = 0
+        self.video_fps_start_time = time.time()
+        self.actual_video_fps = 0.0
+        
         # Setup timer for video playback
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
@@ -455,8 +460,13 @@ class ObjectDetectionApp(QMainWindow):
                 print(f"Video loaded: {Path(video_path).name}")
                 print(f"Duration: {duration:.1f}s, FPS: {fps:.1f}, Frames: {frame_count}")
                 
+                # Reset FPS counters
+                self.video_frame_count = 0
+                self.video_fps_start_time = time.time()
+                
                 # Start playback
-                self.timer.start(max(10, int(1000 / fps)))
+                timer_interval = max(10, int(1000 / fps)) if fps > 0 else 33
+                self.timer.start(timer_interval)
                 self.control_panel.btn_pause.setText("⏸️ Pause")
                 self.paused = False
             else:
@@ -467,10 +477,16 @@ class ObjectDetectionApp(QMainWindow):
         if self.paused:
             self.control_panel.btn_pause.setText("▶️ Play")
             self.timer.stop()
+            # Reset FPS tracking when paused
+            self.video_frame_count = 0
+            self.video_fps_start_time = time.time()
         else:
             self.control_panel.btn_pause.setText("⏸️ Pause")
             if self.cap and self.cap.isOpened():
                 self.timer.start()
+                # Reset FPS tracking when resumed
+                self.video_frame_count = 0
+                self.video_fps_start_time = time.time()
 
     def stop_video(self):
         if self.cap:
@@ -480,6 +496,15 @@ class ObjectDetectionApp(QMainWindow):
         self.paused = False
         self.control_panel.btn_pause.setText("⏸️ Pause")
         self.control_panel.btn_pause.setChecked(False)
+        
+        # Reset FPS counters
+        self.video_frame_count = 0
+        self.video_fps_start_time = time.time()
+        self.status_panel.video_fps_label.setText("Video FPS: 0.0")
+        self.status_panel.detection_fps_label.setText("Detection FPS: 0.0")
+        self.status_panel.detection_label.setText("Objects: 0")
+        self.status_panel.objects_label.setText("Types: None")
+        
         self.show_welcome_message()
 
     def set_speed(self, value):
@@ -511,6 +536,17 @@ class ObjectDetectionApp(QMainWindow):
                 # Resize for better performance on Raspberry Pi
                 frame = cv2.resize(frame, (640, 480))
                 
+                # Calculate video FPS
+                self.video_frame_count += 1
+                current_time = time.time()
+                elapsed_time = current_time - self.video_fps_start_time
+                
+                if elapsed_time >= 1.0:  # Update every second
+                    self.actual_video_fps = self.video_frame_count / elapsed_time
+                    self.status_panel.video_fps_label.setText(f"Video FPS: {self.actual_video_fps:.1f}")
+                    self.video_frame_count = 0
+                    self.video_fps_start_time = current_time
+                
                 # Add frame to detection queue
                 if hasattr(self, 'detection_thread'):
                     self.detection_thread.add_frame(frame)
@@ -520,6 +556,9 @@ class ObjectDetectionApp(QMainWindow):
             else:
                 # Video ended, loop or stop
                 self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Loop video
+                # Reset FPS counter for new loop
+                self.video_frame_count = 0
+                self.video_fps_start_time = time.time()
 
     def display_raw_frame(self, frame):
         """Display frame without detection for smooth playback"""
@@ -559,9 +598,9 @@ class ObjectDetectionApp(QMainWindow):
             objects_text += "..."
         self.status_panel.objects_label.setText(f"Types: {objects_text or 'None'}")
 
-    def update_performance(self, fps, detection_count):
+    def update_performance(self, detection_fps, detection_count):
         """Update performance indicators"""
-        self.status_panel.fps_label.setText(f"FPS: {fps:.1f}")
+        self.status_panel.detection_fps_label.setText(f"Detection FPS: {detection_fps:.1f}")
 
     def closeEvent(self, event):
         """Clean up resources when closing"""
