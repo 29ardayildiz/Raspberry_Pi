@@ -252,6 +252,7 @@ def dashboard():
                                 {{ info.temp }} °C
                             </div>
                             <div class="progress">
+                                {% if info.temp != "N/A" %}
                                 <div class="progress-bar bg-danger" role="progressbar" 
                                      style="width: {{ (info.temp / 85 * 100) if info.temp <= 85 else 100 }}%;"
                                      data-progress="{{ info.temp }}°C">
