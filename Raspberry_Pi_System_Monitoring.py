@@ -180,7 +180,7 @@ def dashboard():
                                 {{ info.temp }} °C
                             </div>
                             <div class="progress">
-                                {% if info.temp != "N/A" %}
+                                
                                 <div class="progress-bar bg-danger" role="progressbar" 
                                      style="width: {{ (info.temp / 85 * 100) if info.temp <= 85 else 100 }}%">
                                 </div>
@@ -323,41 +323,6 @@ def dashboard():
                         card.style.transform = 'translateY(0)';
                     }, 150 * index);
                 });
-                
-                // Geri sayımı başlat
-                startCountdown();
-            });
-            
-            // Sayfayı yenileme fonksiyonu
-            function refreshPage() {
-                location.reload();
-            }
-            
-            // Geri sayım için değişkenler
-            let countdown = 5;
-            let countdownInterval;
-            
-            // Geri sayımı başlat
-            function startCountdown() {
-                const countdownElement = document.getElementById('countdown');
-                countdownElement.textContent = countdown;
-                
-                countdownInterval = setInterval(function() {
-                    countdown--;
-                    countdownElement.textContent = countdown;
-                    
-                    if (countdown <= 0) {
-                        clearInterval(countdownInterval);
-                        refreshPage();
-                    }
-                }, 1000);
-            }
-            
-            // Yenileme butonuna tıklandığında geri sayımı sıfırla
-            document.querySelector('.refresh-btn').addEventListener('click', function() {
-                clearInterval(countdownInterval);
-                countdown = 5;
-                startCountdown();
             });
         </script>
     </body>
