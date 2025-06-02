@@ -73,6 +73,7 @@ def dashboard():
                 color: #f8f9fa;
                 min-height: 100vh;
                 padding-top: 20px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
             @keyframes gradientBG {
                 0% { background-position: 0% 50%; }
@@ -86,35 +87,67 @@ def dashboard():
                 border-radius: 15px;
                 transition: transform 0.3s ease;
                 height: 100%;
+                opacity: 0;
+                transform: translateY(20px);
+                animation: fadeIn 0.5s forwards;
             }
-            .card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            @keyframes fadeIn {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
+            .card:nth-child(1) { animation-delay: 0.1s; }
+            .card:nth-child(2) { animation-delay: 0.2s; }
+            .card:nth-child(3) { animation-delay: 0.3s; }
+            .card:nth-child(4) { animation-delay: 0.4s; }
             .card-header {
                 background: rgba(0, 0, 0, 0.2);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 font-weight: 600;
+                letter-spacing: 0.5px;
             }
             .value-display {
                 font-size: 2.5rem;
                 font-weight: bold;
                 margin: 15px 0;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             }
             .progress {
                 height: 20px;
                 margin: 10px 0;
                 background: rgba(0, 0, 0, 0.2);
+                border-radius: 10px;
+                overflow: visible;
+            }
+            .progress-bar {
+                border-radius: 10px;
+                position: relative;
+                overflow: visible;
+            }
+            .progress-bar::after {
+                content: attr(data-progress);
+                position: absolute;
+                right: 10px;
+                top: -25px;
+                background: rgba(0,0,0,0.7);
+                color: white;
+                padding: 2px 8px;
+                border-radius: 5px;
+                font-size: 12px;
             }
             .status-icon {
                 font-size: 3rem;
                 margin-bottom: 15px;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
             }
             .system-card {
                 background: rgba(0, 0, 0, 0.3);
                 border-radius: 15px;
                 padding: 20px;
                 margin-bottom: 20px;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255,255,255,0.1);
             }
             .text-success { color: #20c997 !important; }
             .text-warning { color: #fd7e14 !important; }
@@ -136,6 +169,14 @@ def dashboard():
                 justify-content: center;
                 font-size: 1.5rem;
                 box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                background: rgba(13, 110, 253, 0.9);
+                border: none;
+                color: white;
+                transition: all 0.3s;
+            }
+            .refresh-btn:hover {
+                transform: scale(1.1) rotate(90deg);
+                background: rgba(11, 94, 215, 1);
             }
             footer {
                 background: rgba(0, 0, 0, 0.3);
@@ -143,10 +184,41 @@ def dashboard():
                 padding: 15px;
                 margin-top: 20px;
                 font-size: 0.9rem;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            .refresh-indicator {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0,0,0,0.5);
+                color: white;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                z-index: 1000;
+            }
+            .pulse {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #20c997;
+                margin-right: 5px;
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(0.9); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(0.9); }
             }
         </style>
     </head>
     <body>
+        <div class="refresh-indicator">
+            <span class="pulse"></span> <span id="countdown">5</span> saniye sonra güncellenecek
+        </div>
+        
         <div class="container py-4">
             <div class="text-center mb-4">
                 <h1 class="display-4 fw-bold"><i class="fas fa-microchip me-2"></i>Raspberry Pi Sistem İzleme</h1>
@@ -168,7 +240,7 @@ def dashboard():
             <div class="row g-4">
                 <!-- CPU Sıcaklığı -->
                 <div class="col-md-6 col-lg-3">
-                    <div class="card h-100">
+                    <div class="card">
                         <div class="card-header text-center">
                             <i class="fas fa-thermometer-half me-2"></i>CPU Sıcaklığı
                         </div>
@@ -182,7 +254,8 @@ def dashboard():
                             <div class="progress">
                                 {% if info.temp != "N/A" %}
                                 <div class="progress-bar bg-danger" role="progressbar" 
-                                     style="width: {{ (info.temp / 85 * 100) if info.temp <= 85 else 100 }}%">
+                                     style="width: {{ (info.temp / 85 * 100) if info.temp <= 85 else 100 }}%;"
+                                     data-progress="{{ info.temp }}°C">
                                 </div>
                                 {% endif %}
                             </div>
@@ -205,7 +278,7 @@ def dashboard():
 
                 <!-- CPU Kullanımı -->
                 <div class="col-md-6 col-lg-3">
-                    <div class="card h-100">
+                    <div class="card">
                         <div class="card-header text-center">
                             <i class="fas fa-microchip me-2"></i>CPU Kullanımı
                         </div>
@@ -218,7 +291,8 @@ def dashboard():
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-info" role="progressbar" 
-                                     style="width: {{ info.cpu }}%">
+                                     style="width: {{ info.cpu }}%;"
+                                     data-progress="{{ info.cpu }}%">
                                 </div>
                             </div>
                             <p class="mb-0">
@@ -236,7 +310,7 @@ def dashboard():
 
                 <!-- Bellek Kullanımı -->
                 <div class="col-md-6 col-lg-3">
-                    <div class="card h-100">
+                    <div class="card">
                         <div class="card-header text-center">
                             <i class="fas fa-memory me-2"></i>Bellek Kullanımı
                         </div>
@@ -249,7 +323,8 @@ def dashboard():
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-warning" role="progressbar" 
-                                     style="width: {{ info.mem }}%">
+                                     style="width: {{ info.mem }}%;"
+                                     data-progress="{{ info.mem }}%">
                                 </div>
                             </div>
                             <p class="mb-0">
@@ -267,7 +342,7 @@ def dashboard():
 
                 <!-- Disk Kullanımı -->
                 <div class="col-md-6 col-lg-3">
-                    <div class="card h-100">
+                    <div class="card">
                         <div class="card-header text-center">
                             <i class="fas fa-hdd me-2"></i>Disk Kullanımı
                         </div>
@@ -280,7 +355,8 @@ def dashboard():
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: {{ info.disk }}%">
+                                     style="width: {{ info.disk }}%;"
+                                     data-progress="{{ info.disk }}%">
                                 </div>
                             </div>
                             <p class="mb-0">
@@ -303,15 +379,15 @@ def dashboard():
                         <p class="mb-0"><i class="fas fa-code me-2"></i>Flask & Python ile geliştirilmiştir</p>
                     </div>
                     <div class="col-md-6">
-                        <p class="mb-0"><i class="fas fa-sync-alt me-2"></i>Son Güncelleme: {{ time.strftime('%H:%M:%S') }}</p>
+                        <p class="mb-0"><i class="fas fa-sync-alt me-2"></i>Son Güncelleme: <span id="last-update">{{ time.strftime('%H:%M:%S') }}</span></p>
                     </div>
                 </div>
             </footer>
         </div>
 
-        <a href="/" class="refresh-btn btn btn-primary">
+        <button class="refresh-btn" onclick="refreshPage()">
             <i class="fas fa-sync-alt"></i>
-        </a>
+        </button>
 
         <script>
             // Sayfa yüklendiğinde kartlara animasyon ekle
@@ -323,6 +399,41 @@ def dashboard():
                         card.style.transform = 'translateY(0)';
                     }, 150 * index);
                 });
+                
+                // Geri sayımı başlat
+                startCountdown();
+            });
+            
+            // Sayfayı yenileme fonksiyonu
+            function refreshPage() {
+                location.reload();
+            }
+            
+            // Geri sayım için değişkenler
+            let countdown = 5;
+            let countdownInterval;
+            
+            // Geri sayımı başlat
+            function startCountdown() {
+                const countdownElement = document.getElementById('countdown');
+                countdownElement.textContent = countdown;
+                
+                countdownInterval = setInterval(function() {
+                    countdown--;
+                    countdownElement.textContent = countdown;
+                    
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        refreshPage();
+                    }
+                }, 1000);
+            }
+            
+            // Yenileme butonuna tıklandığında geri sayımı sıfırla
+            document.querySelector('.refresh-btn').addEventListener('click', function() {
+                clearInterval(countdownInterval);
+                countdown = 5;
+                startCountdown();
             });
         </script>
     </body>
