@@ -118,23 +118,10 @@ def dashboard():
                 margin: 10px 0;
                 background: rgba(0, 0, 0, 0.2);
                 border-radius: 10px;
-                overflow: visible;
+                overflow: hidden; /* Değiştirildi: visible -> hidden */
             }
             .progress-bar {
                 border-radius: 10px;
-                position: relative;
-                overflow: visible;
-            }
-            .progress-bar::after {
-                content: attr(data-progress);
-                position: absolute;
-                right: 10px;
-                top: -25px;
-                background: rgba(0,0,0,0.7);
-                color: white;
-                padding: 2px 8px;
-                border-radius: 5px;
-                font-size: 12px;
             }
             .status-icon {
                 font-size: 3rem;
@@ -252,10 +239,11 @@ def dashboard():
                                 {{ info.temp }} °C
                             </div>
                             <div class="progress">
+                                {% if info.temp != "N/A" %}
                                 <div class="progress-bar bg-danger" role="progressbar" 
-                                     style="width: {{ (info.temp / 85 * 100) if info.temp <= 85 else 100 }}%;"
-                                     data-progress="{{ info.temp }}°C">
+                                     style="width: {{ (info.temp / 85 * 100) if info.temp <= 85 else 100 }}%">
                                 </div>
+                                {% endif %}
                             </div>
                             <p class="mb-0">
                                 {% if info.temp != "N/A" %}
@@ -289,8 +277,7 @@ def dashboard():
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-info" role="progressbar" 
-                                     style="width: {{ info.cpu }}%;"
-                                     data-progress="{{ info.cpu }}%">
+                                     style="width: {{ info.cpu }}%">
                                 </div>
                             </div>
                             <p class="mb-0">
@@ -321,8 +308,7 @@ def dashboard():
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-warning" role="progressbar" 
-                                     style="width: {{ info.mem }}%;"
-                                     data-progress="{{ info.mem }}%">
+                                     style="width: {{ info.mem }}%">
                                 </div>
                             </div>
                             <p class="mb-0">
@@ -353,8 +339,7 @@ def dashboard():
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: {{ info.disk }}%;"
-                                     data-progress="{{ info.disk }}%">
+                                     style="width: {{ info.disk }}%">
                                 </div>
                             </div>
                             <p class="mb-0">
@@ -427,7 +412,7 @@ def dashboard():
                 }, 1000);
             }
             
-            // Yenileme butonuna tıklandığında geri sayımı sıfırla
+            // Yenileme butonuna tıklandığıda geri sayımı sıfırla
             document.querySelector('.refresh-btn').addEventListener('click', function() {
                 clearInterval(countdownInterval);
                 countdown = 5;
